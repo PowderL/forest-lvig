@@ -23,7 +23,7 @@ class TreeRegressor:
     def __init__(self, n_features, max_depth):
         self.n_features = n_features
         self.max_depth = max_depth
-        self.tree_ = Tree(n_features, max_depth)
+        self.tree_ = Tree(int(n_features), int(max_depth))
 
     def rebuild_tree_xgb(self, tree_attrs):
         leaf = tree_attrs.get("leaf", None)
@@ -42,6 +42,23 @@ class TreeRegressor:
                 node_id, is_leaf, left_child, right_child, threshold, feature)
             self.rebuild_tree_xgb(tree_attrs['children'][0])
             self.rebuild_tree_xgb(tree_attrs['children'][1])
+
+    def rebuild_tree_rfr(self, tree):
+        '''
+        reconstruct the random forest.
+        '''
+        children_left = tree.tree_.children_left
+        children_right = tree.tree_.children_right
+        feature = tree.tree_.feature
+        threshold = tree.tree_.threshold
+        for node_id in range(children_left.shape[0]):
+            left_child_i = children_left[node_id]
+            right_child_i = children_right[node_id]
+            feature_i = feature[node_id]
+            threshold_i = threshold[node_id]
+            is_leaf = False if left_child_i > 0 else True
+            self.tree_._rebuild_node(node_id, is_leaf, left_child_i,
+                                     right_child_i, threshold_i, feature_i)
 
     def lvig_based_impurity(self, X, y, subspace_flag):
         # this code is for the dubug of the cython version

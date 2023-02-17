@@ -9,13 +9,7 @@ from ._forest import ForestRegressor
 
 class LVIG_XGBoostRegressor(ForestRegressor):
     def __init__(self, model, X_varnames, n_jobs=None, verbose=0):
-        self.model = model
-        self.max_depth = model.max_depth
-        self.X_varnames = X_varnames
-        self.n_features = len(X_varnames)
-        self.n_jobs = n_jobs
-        self.verbose = verbose
-        super().__init__(model, X_varnames, n_jobs=None, verbose=0)
+        super().__init__(model, X_varnames, n_jobs=n_jobs, verbose=verbose)
         self.init_model()
 
     def init_model(self):

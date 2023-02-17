@@ -8,6 +8,7 @@ class ForestRegressor():
     def __init__(self, model, X_varnames, n_jobs=None, verbose=0):
         self.model = model
         self.max_depth = model.max_depth
+        self.max_depth = 10 if model.max_depth is None else self.max_depth
         self.X_varnames = X_varnames
         self.n_features = len(X_varnames)
         self.n_jobs = n_jobs

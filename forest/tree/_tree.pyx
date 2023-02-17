@@ -32,6 +32,7 @@ cdef class Tree:
         cdef capacity = 2**(max_depth + 1) - 1
         self.nodes = NULL
         self._resize(capacity)
+        self.capacity = 0
         
     def __dealloc__(self):
         """Destructor."""
@@ -82,10 +83,11 @@ cdef class Tree:
         Returns (size_t)(-1) on error.
         """
         ## 正在考虑要去除这个
-        cdef Node* node = &self.nodes[node_id]
         if node_id >= self.capacity:
             if self._resize_c() != 0:
                 return SIZE_MAX
+        ## mention memory overflow!
+        cdef Node* node = &self.nodes[node_id]
         ## 由于是重新构建树，考虑不适用impurity了
         #node.impurity = impurity
         ## 在这里recursively rebuild nodes
@@ -157,7 +159,7 @@ cdef class Tree:
                     if node_subs_sample_num[subs_i, node_i] > 1:
                         node_impurity[subs_i, node_i] = (node_subs_squared_y_sum[subs_i, node_i] -
                             node_subs_y_sum[subs_i, node_i]**2/node_subs_sample_num[subs_i, node_i])
-                node += 1
+
             ## compute feature importance
             for node_i in range(node_num):
                 node = &self.nodes[node_i]
