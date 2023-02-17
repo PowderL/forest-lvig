@@ -112,5 +112,5 @@ class LVIG_XGBoostRegressor:
                 axis=1).reshape(feature_importances_re.shape[0], 1)
             feature_importances_re = feature_importances_re / \
                 (sum_of_importance_re+(sum_of_importance_re == 0))
-        # return pd.DataFrame(feature_importances_re, columns=columns, index=unique_element)
-        return pd.DataFrame(feature_importances_re)
+        return pd.DataFrame(feature_importances_re, columns=columns, index=unique_element)
+        # return pd.DataFrame(feature_importances_re)

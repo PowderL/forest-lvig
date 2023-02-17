@@ -159,13 +159,13 @@ cdef class Tree:
                             node_subs_y_sum[subs_i, node_i]**2/node_subs_sample_num[subs_i, node_i])
                 node += 1
             ## compute feature importance
-            node = self.nodes
             for node_i in range(node_num):
+                node = &self.nodes[node_i]
                 for subs_i in range(subs_num):
                     if node.left_child != _TREE_LEAF and node_subs_sample_num[subs_i, node_i] > 1:
-                        importances[subs_i, node.feature] = (node_impurity[subs_i, node_i] -
+                        importances[subs_i, node.feature] += (node_impurity[subs_i, node_i] -
                             node_impurity[subs_i, node.left_child]- node_impurity[subs_i, node.right_child])
-        return (node_impurity)
+        return (importances)
 
 
 
