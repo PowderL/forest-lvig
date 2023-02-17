@@ -1,0 +1,6 @@
+my_package/*
+build/*
+forest_gis.egg-info/*
+*.pyd
+*.c
+*.pyc
