@@ -14,7 +14,7 @@ class ForestRegressor():
         self.n_jobs = n_jobs
         self.verbose = verbose
 
-    def lvig_base(self, X, y, partition_feature=None, method="lvig_based_impurity_cython_version",  norm=True):
+    def lvig_base(self, base_estimators_, X, y, partition_feature=None, method="lvig_based_impurity_cython_version",  norm=True):
         '''
         :param X:
         :param y:
@@ -57,8 +57,9 @@ class ForestRegressor():
         if method == "lvig_based_impurity":
             results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose,
                                **_joblib_parallel_args(prefer="threads"))(
-                delayed(tree.lvig_based_impurity)(X, y, subspace_flag)
-                for tree in self.estimators_)
+                delayed(tree.lvig_based_impurity)(
+                    base_estimators_[i], X, y, subspace_flag)
+                for i, tree in enumerate(self.estimators_))
         elif method == "lvig_based_accuracy":
             results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose,
                                **_joblib_parallel_args(prefer='threads'))(

@@ -60,7 +60,7 @@ class TreeRegressor:
             self.tree_._rebuild_node(node_id, is_leaf, left_child_i,
                                      right_child_i, threshold_i, feature_i)
 
-    def lvig_based_impurity(self, X, y, subspace_flag):
+    def lvig_based_impurity(self, tree, X, y, subspace_flag):
         # this code is for the dubug of the cython version
         '''
         This function is to compute variable importance for each local group in one tree.
@@ -77,16 +77,16 @@ class TreeRegressor:
         y_squared = y.multiply(y)
         feature_index = np.arange(0, X.shape[1])
         # to obtain the split feature at each node in this tree
-        node_split_feature = self.tree_.feature
+        node_split_feature = tree.tree_.feature
         # reshape it
         node_split_feature_copy = node_split_feature.reshape(
             node_split_feature.shape[0], 1)
         # use sparse matrix to contain to feature array
         fa_feature = csr_matrix(node_split_feature_copy == feature_index)
         # to obtain the index of left child node for each split node
-        children_left = self.tree_.children_left
+        children_left = tree.tree_.children_left
         # to obtain the index of right child node for each split node
-        children_right = self.tree_.children_right
+        children_right = tree.tree_.children_right
         # generate a zero matrix to contain the results
         TVI = np.zeros((1, subspace_flag.shape[0], X.shape[1]))
         for inde in range(subspace_flag.shape[0]):
@@ -99,7 +99,7 @@ class TreeRegressor:
             # via index of row to select rows of squared Y
             choose_y_squared = y_squared[0, subspace_index]
             # to obtain decision path for each row
-            decision_path_v = self.decision_path(choose_X)
+            decision_path_v = tree.decision_path(choose_X)
             # to obtain the numbers of records at each node in this tree
             data_num = np.array(decision_path_v.sum(axis=0))[0]
             # to select node which contain records more than one record. Because there is no squared error if the node has less than tow records.

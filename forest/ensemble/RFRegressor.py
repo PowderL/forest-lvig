@@ -21,4 +21,4 @@ class LVIG_RFRegressor(ForestRegressor):
             for i, tree in enumerate(self.estimators_))
 
     def lvig(self, X, y, partition_feature=None, method="lvig_based_impurity_cython_version", norm=True):
-        return (self.lvig_base(X, y, partition_feature, method=method,  norm=norm))
+        return (self.lvig_base(self.model.estimators_, X, y, partition_feature, method=method,  norm=norm))
