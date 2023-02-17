@@ -1,4 +1,3 @@
-
 from ..tree import TreeRegressor
 import json
 from joblib import Parallel, delayed
@@ -7,7 +6,7 @@ import numpy as np
 from ._forest import ForestRegressor
 
 
-class LVIG_XGBoostRegressor(ForestRegressor):
+class LVIG_RFRegressor(ForestRegressor):
     def __init__(self, model, X_varnames, n_jobs=None, verbose=0):
         self.model = model
         self.max_depth = model.max_depth
@@ -47,5 +46,5 @@ class LVIG_XGBoostRegressor(ForestRegressor):
                     value[1])
         return (tree_attrs)
 
-    def lvig(self, X, y, partition_feature=None, norm=True):
-        return (self.lvig_base(X, y, partition_feature, method="lvig_based_impurity_cython_version",  norm=norm))
+    def lvig(self, X, y, partition_feature=None, method="lvig_based_impurity_cython_version", norm=True):
+        return (self.lvig_base(X, y, partition_feature, method=method,  norm=norm))

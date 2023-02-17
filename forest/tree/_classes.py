@@ -44,6 +44,7 @@ class TreeRegressor:
             self.rebuild_tree_xgb(tree_attrs['children'][1])
 
     def lvig_based_impurity(self, X, y, subspace_flag):
+        # this code is for the dubug of the cython version
         '''
         This function is to compute variable importance for each local group in one tree.
         It returns a 1*n_group*n_feature 3-d array containing the variable importance
