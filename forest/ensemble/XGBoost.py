@@ -42,4 +42,4 @@ class LVIG_XGBoostRegressor(ForestRegressor):
         return (tree_attrs)
 
     def lvig(self, X, y, partition_feature=None, norm=True):
-        return (self.lvig_base(self.model.estimators_, X, y, partition_feature, method="lvig_based_impurity_cython_version",  norm=norm))
+        return (self.lvig_base(self.model, X, y, partition_feature, method="lvig_based_impurity_cython_version",  norm=norm))
