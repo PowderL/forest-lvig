@@ -24,7 +24,7 @@ class ForestRegressor():
         :param norm:
         :return:
         '''
-        columns = [i for i in range(self.n_features)]
+        columns = X.columns
         if method not in ["lvig_based_impurity", "lvig_based_accuracy",
                           "lvig_based_impurity_cython_version"]:
             raise ValueError('''method must one of [lvig_based_impurity, 
