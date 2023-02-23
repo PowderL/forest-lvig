@@ -17,6 +17,16 @@ TREE_UNDEFINED = -2
 cdef SIZE_t _TREE_LEAF = TREE_LEAF
 cdef SIZE_t _TREE_UNDEFINED = TREE_UNDEFINED
 
+cdef Node dummy;
+NODE_DTYPE = np.asarray(<Node[:1]>(&dummy)).dtype
+
+cdef extern from "numpy/arrayobject.h":
+    object PyArray_NewFromDescr(PyTypeObject* subtype, np.dtype descr,
+                                int nd, np.npy_intp* dims,
+                                np.npy_intp* strides,
+                                void* data, int flags, object obj)
+    int PyArray_SetBaseObject(np.ndarray arr, PyObject* obj)
+
 cdef class Tree:
     # Wrap for outside world.
     # WARNING: these reference the current `nodes` and `value` buffers, which
@@ -33,12 +43,53 @@ cdef class Tree:
         self.nodes = NULL
         self._resize(capacity)
         self.capacity = 0
-        
+
     def __dealloc__(self):
         """Destructor."""
         # Free all inner structures
         free(self.nodes)
-
+    
+    def __getstate__(self):
+        """Getstate re-implementation, for pickling."""
+        d = {}
+        # capacity is inferred during the __setstate__ using nodes
+        d["max_depth"] = self.max_depth
+        d["node_count"] = self.node_count
+        d["nodes"] = self._get_node_ndarray()
+        #d["values"] = self._get_value_ndarray()
+        return d
+    cpdef INT64_t[:] children_left(self):
+        cdef Node* node
+        cdef INT64_t[:] children_left
+        children_left = np.repeat(0, self.node_count).astype("int64")
+        for node_id in range(self.node_count):
+            node = &self.nodes[node_id]
+            children_left[node_id] = node.left_child
+        return children_left
+    cpdef INT64_t[:] children_right(self):
+        cdef Node* node
+        cdef INT64_t[:] children_right
+        children_right = np.repeat(0, self.node_count).astype("int64")
+        for node_id in range(self.node_count):
+            node = &self.nodes[node_id]
+            children_right[node_id] = node.right_child
+        return children_right
+    cpdef INT64_t[:] feature(self):
+        cdef Node* node
+        cdef INT64_t[:] feature
+        feature = np.repeat(0, self.node_count).astype("int64")
+        for node_id in range(self.node_count):
+            node = &self.nodes[node_id]
+            feature[node_id] = node.feature
+        return feature
+    cpdef DOUBLE_t[:] threshold(self):
+        cdef Node* node
+        cdef DOUBLE_t[:] threshold
+        threshold = np.repeat(0, self.node_count).astype("float64")
+        for node_id in range(self.node_count):
+            node = &self.nodes[node_id]
+            threshold[node_id] = node.threshold
+        return threshold  
     cdef int _resize(self, SIZE_t capacity) nogil except -1:
         """Resize all inner arrays to `capacity`, if `capacity` == -1, then
            double the size of the inner arrays.
@@ -127,8 +178,8 @@ cdef class Tree:
             ## refering to the struct
             SIZE_t node_num = self.node_count
             Node* node = NULL
-            Node* left
-            Node* right
+            #Node* left
+            #Node* right
         importances = np.zeros((subs_num, self.n_features))
         node_subs_y_sum = np.zeros((subs_num, node_num))
         node_subs_squared_y_sum = np.zeros((subs_num, node_num))
@@ -141,11 +192,13 @@ cdef class Tree:
                         present_node_id = 0
                         node = self.nodes
                         # While node not a leaf
-                        while node.left_child != _TREE_LEAF:
+                        while True:
                             # ... and node.right_child != _TREE_LEAF:
                             node_subs_y_sum[subs_i, present_node_id] += y_ndarray[sample_i]
                             node_subs_squared_y_sum[subs_i, present_node_id] += (y_ndarray[sample_i])**2
                             node_subs_sample_num[subs_i, present_node_id] += 1
+                            if node.left_child == _TREE_LEAF:
+                                break
                             if X_ndarray[sample_i, node.feature] <= node.threshold:
                                 present_node_id = node.left_child
                                 node = &self.nodes[present_node_id]
@@ -153,12 +206,11 @@ cdef class Tree:
                                 present_node_id = node.right_child
                                 node = &self.nodes[present_node_id]
             ## compute local impurty for first node
-            node = self.nodes
             for node_i in range(node_num):
                 for subs_i in range(subs_num):
                     if node_subs_sample_num[subs_i, node_i] > 1:
                         node_impurity[subs_i, node_i] = (node_subs_squared_y_sum[subs_i, node_i] -
-                            node_subs_y_sum[subs_i, node_i]**2/node_subs_sample_num[subs_i, node_i])
+                            (node_subs_y_sum[subs_i, node_i])**2/node_subs_sample_num[subs_i, node_i])
 
             ## compute feature importance
             for node_i in range(node_num):
@@ -167,8 +219,29 @@ cdef class Tree:
                     if node.left_child != _TREE_LEAF and node_subs_sample_num[subs_i, node_i] > 1:
                         importances[subs_i, node.feature] += (node_impurity[subs_i, node_i] -
                             node_impurity[subs_i, node.left_child]- node_impurity[subs_i, node.right_child])
-        return (importances)
 
+        return (importances)
+    cdef np.ndarray _get_node_ndarray(self):
+        """Wraps nodes as a NumPy struct array.
+
+        The array keeps a reference to this Tree, which manages the underlying
+        memory. Individual fields are publicly accessible as properties of the
+        Tree.
+        """
+        cdef np.npy_intp shape[1]
+        shape[0] = <np.npy_intp> self.node_count
+        cdef np.npy_intp strides[1]
+        strides[0] = sizeof(Node)
+        cdef np.ndarray arr
+        Py_INCREF(NODE_DTYPE)
+        arr = PyArray_NewFromDescr(<PyTypeObject *> np.ndarray,
+                                   <np.dtype> NODE_DTYPE, 1, shape,
+                                   strides, <void*> self.nodes,
+                                   np.NPY_DEFAULT, None)
+        Py_INCREF(self)
+        if PyArray_SetBaseObject(arr, <PyObject*> self) < 0:
+            raise ValueError("Can't initialize array.")
+        return arr
 
 
 

@@ -56,7 +56,7 @@ class TreeRegressor:
             right_child_i = children_right[node_id]
             feature_i = feature[node_id]
             threshold_i = threshold[node_id]
-            is_leaf = False if left_child_i > 0 else True
+            is_leaf = False if feature_i >= 0 else True
             self.tree_._rebuild_node(node_id, is_leaf, left_child_i,
                                      right_child_i, threshold_i, feature_i)
 

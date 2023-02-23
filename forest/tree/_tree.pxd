@@ -38,7 +38,11 @@ cdef class Tree:
     #cpdef SIZE_t _rebuild_tree(self, object, tree_attrs)
     cpdef SIZE_t _rebuild_node(self, SIZE_t node_id, bint is_leaf, SIZE_t left_child, 
           SIZE_t right_child, double threshold, SIZE_t feature)
-              
+    cpdef INT64_t[:] children_left(self)
+    cpdef INT64_t[:] children_right(self)
+    cpdef INT64_t[:] feature(self)
+    cpdef DOUBLE_t[:] threshold(self)
+    cdef np.ndarray _get_node_ndarray(self)              
     cdef int _resize(self, SIZE_t capacity) nogil except -1
     cdef int _resize_c(self, SIZE_t capacity=*) nogil except -1
     cpdef DOUBLE_t[:,:] local_variable_importance_g(self, object X, object y, object grouping)
