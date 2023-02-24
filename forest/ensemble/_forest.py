@@ -44,7 +44,10 @@ class ForestRegressor():
                 raise ValueError(
                     'The input X has different number of instances with partion_feature variable')
             unique_element = np.unique(partition_feature)
-            subspace_flag = unique_element[:, None] == partition_feature
+            subspace_flag = [partition_feature[None, :] == unique_e for unique_e in unique_element]
+
+            subspace_flag = np.vstack(subspace_flag)
+            print(subspace_flag.shape)
         else:
             unique_element = None
             subspace_flag = np.ones((X.shape[0]))
