@@ -4,3 +4,4 @@ forest_gis.egg-info/*
 *.pyd
 *.c
 *.pyc
+*.so
