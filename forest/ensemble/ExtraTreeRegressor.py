@@ -2,17 +2,17 @@ from ..tree import TreeRegressor
 import json
 from joblib import Parallel, delayed
 from sklearn.utils.fixes import _joblib_parallel_args
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 import numpy as np
 from ._forest import ForestRegressor
 
 
-class LVIG_RFRegressor(ForestRegressor):
+class LVIG_EXTRegressor(ForestRegressor):
     def __init__(self, model, X_varnames, n_jobs=None, verbose=0):
         super().__init__(model, X_varnames, n_jobs=n_jobs, verbose=verbose)
-        if not isinstance(model, RandomForestRegressor):
+        if not isinstance(model, ExtraTreesRegressor):
             raise ValueError(
-                "model must be instance of sklearn.ensemble.RandomForestRegressor")
+                "model must be instance of sklearn.ensemble.ExtraTreesRegressor")
         self.init_model()
 
     def init_model(self):
