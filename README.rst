@@ -22,6 +22,7 @@ forest-gis requires:
 - NumPy (>= 1.15.0)
 - SciPy (>= 0.19.1)
 - joblib (>= 0.14)
+- scikit-learn (>=0.19.0)
 
 For Windwos
 ------------
@@ -89,26 +90,49 @@ Finally, build forest-gis ::
 User Guide
 ^^^^^^^^^^^^
 
-Compute local variable importance based on decrease in node impurity ::
+Compute local variable importance based on the impurity metric::
 
 	# use Boston house-price datasets as an example
 	from sklearn.datasets import load_boston
 	train_x, train_y = load_boston(return_X_y=True)
 	# partition_feature could a column from train_x
 	partition_feature = train_x[:, 1]
-	from forest.ensemble import RandomForestRegressor
+	from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+  from forest.ensemble import impurity_LVIG_RFRegressor
+  from forest.ensemble import impurity_LVIG_EXTRegressor
 	rf = RandomForestRegressor(500, max_features=0.3)
 	rf.fit(train_x, train_y)
-	local_variable_importance = rf.lvig(train_x, train_y, partition_feature = partition_feature,
-    	method = "lvig_based_impurity")
-	
-or compute local variable importance based on decrease in accuracy ::
+  ## using random forest model to compute local variable importance
+  var_names = ["var_" + str(i) for i in range(train_x.shape[1])]
+  lvig_handler = impurity_LVIG_RFRegressor(rf, var_names)
+	local_variable_importance = lvig_handler.lvig(train_x, train_y, partition_feature = partition_feature)
 
-	local_variable_importance = rf.lvig(train_x, train_y, partition_feature = partition_feature,
-            method = "lvig_based_accuracy")
+  ## use extra-trees to compute local variable importance
+	model = ExtraTreesRegressor(500, max_features=0.3)
+	model.fit(train_x, train_y)
+  lvig_handler = impurity_LVIG_EXTRegressor(rf, var_names)
+	local_variable_importance = lvig_handler.lvig(train_x, train_y, partition_feature = partition_feature)
 
-to achieve lower computation cost, we provide a cython_ version based on decrease in node impurity ::
-    
-	local_variable_importance = rf.lvig(train_x, train_y, partition_feature = partition_feature,
-    	method = "lvig_based_impurity_cython_version")
+or compute local variable importance based on the accuracy metric::
+
+  from forest.ensemble import accuracy_LVIG
+  model = RandomForestRegressor(500, max_features=0.3)
+	model.fit(train_x, train_y)
+  lvig_handler = accuracy_LVIG(model)
+	local_variable_importance = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature = partition_feature)
+  ## as the accuracy-based LVIG is a model-agnostic method, using other model like xgboost and gradient booting decission tree is applicable
+  ## 
+  from sklearn.ensemble import GradientBoostingRegressor
+  import xgboost as xgb
+  ## based on gradient boosting decission tree
+  model = GradientBoostingRegressor(n_estimators = 500, max_depth = 15, learning_rate=0.05, subsample=0.5, max_features=5)
+  model.fit(train_x, train_y)
+  lvig_handler = lvig(model)
+  data = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature)  
+
+  ## based on xgboost
+  model = xgb.XGBRegressor(n_estimators = 500, max_depth = 15, subsample = 0.5, eval_metric = "rmse", objective = "reg:linear", n_jobs=20, eta = 0.05, colsample_bynode = 0.33334)
+  model.fit(train_x, train_y)
+  lvig_handler = lvig(model)
+  data = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature)  
 
