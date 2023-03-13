@@ -119,11 +119,10 @@ or compute local variable importance based on the accuracy metric::
   model = RandomForestRegressor(500, max_features=0.3)
 
 	model.fit(train_x, train_y)
-  
+  ## 
   lvig_handler = accuracy_LVIG(model)
 	local_variable_importance = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature = partition_feature)
   ## as the accuracy-based LVIG is a model-agnostic method, using other model like xgboost and gradient booting decission tree is applicable
-  ## 
   from sklearn.ensemble import GradientBoostingRegressor
   import xgboost as xgb
   ## based on gradient boosting decission tree
