@@ -1,5 +1,6 @@
 my_package/*
 build/*
+.vscode/*
 forest_gis.egg-info/*
 *.pyd
 *.c
