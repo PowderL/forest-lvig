@@ -117,7 +117,6 @@ or compute local variable importance based on the accuracy metric::
 
   from forest.ensemble import accuracy_LVIG
   model = RandomForestRegressor(500, max_features=0.3)
-
 	model.fit(train_x, train_y)
   ## 
   lvig_handler = accuracy_LVIG(model)
