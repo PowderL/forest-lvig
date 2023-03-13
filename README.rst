@@ -100,7 +100,7 @@ Compute local variable importance based on the impurity metric ::
 	from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
   from forest.ensemble import impurity_LVIG_RFRegressor
   from forest.ensemble import impurity_LVIG_EXTRegressor
-	rf = RandomForestRegressor(500, max_features=0.3)
+  rf = RandomForestRegressor(500, max_features=0.3)
 	rf.fit(train_x, train_y)
   ## using random forest model to compute local variable importance
   var_names = ["var_" + str(i) for i in range(train_x.shape[1])]
