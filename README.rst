@@ -128,12 +128,12 @@ or compute local variable importance based on the accuracy metric ::
         ## based on gradient boosting decission tree
         model = GradientBoostingRegressor(n_estimators = 500, max_depth = 15, learning_rate=0.05, subsample=0.5, max_features=5)
         model.fit(train_x, train_y)
-        lvig_handler = lvig(model)
+        lvig_handler = accuracy_LVIG(model)
         data = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature)  
 
         ## based on xgboost
         model = xgb.XGBRegressor(n_estimators = 500, max_depth = 15, subsample = 0.5, eval_metric = "rmse", objective = "reg:linear", n_jobs=20, eta = 0.05, colsample_bynode = 0.33334)
         model.fit(train_x, train_y)
-        lvig_handler = lvig(model)
+        lvig_handler = accuracy_LVIG(model)
         data = lvig_handler.compute_feature_importance(train_x, train_y, partition_feature)  
 
